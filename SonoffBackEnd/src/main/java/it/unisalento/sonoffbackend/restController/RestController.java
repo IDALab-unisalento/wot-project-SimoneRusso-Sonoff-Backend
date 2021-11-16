@@ -45,7 +45,7 @@ OkHttpClient client = new OkHttpClient();
 
 	}
 
-	@RequestMapping(value = "changeStatusON", method = RequestMethod.GET)
+	@RequestMapping(value = "changeStatusON/{clientId}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean> changeStatusON(@PathVariable("clientId") String clientId) throws Exception {
 		Request request = new Request.Builder().url(host+"changeStatusON/"+clientId)
 				.get()
@@ -59,7 +59,7 @@ OkHttpClient client = new OkHttpClient();
 
 	}
 
-	  @RequestMapping(value="getStatus", method = RequestMethod.GET) 
+	  @RequestMapping(value="getStatus/{clientId}", method = RequestMethod.GET) 
 	  public String getStatus(@PathVariable("clientId") String clientId) throws Exception{
 		   Request request = new Request.Builder().url(host+"getStatus/"+clientId)
 					.get()

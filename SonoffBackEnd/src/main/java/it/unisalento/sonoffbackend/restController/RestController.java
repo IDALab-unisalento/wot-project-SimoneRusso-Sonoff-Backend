@@ -74,13 +74,13 @@ OkHttpClient client = new OkHttpClient();
 		   return status;
 	  }
 	  
-	  @RequestMapping(value="saveToken", method = RequestMethod.POST) 
-	  public ResponseEntity<String> saveToken(@RequestBody String token) throws Exception{		  
+	  @RequestMapping(value="saveToken/{token}", method = RequestMethod.POST) 
+	  public ResponseEntity<String> saveToken(@PathVariable("token") String token/*@RequestBody String token)*/) throws Exception{		  
 		  JSONParser parser = new JSONParser();
 	      JSONArray array = new JSONArray();
 	      File file = new File("./tokens.json");  
 	      file.createNewFile();
-	      String tokenValue = token.split("=")[1];
+	      //String tokenValue = token.split("=")[1];
 	      List<String> tokens = new ArrayList<>();
 			
 	      try {
@@ -90,7 +90,7 @@ OkHttpClient client = new OkHttpClient();
 	    	  for(String tok: tokens) {
 	    		  array.add(tok);
 	    		  }
-	    	  array.add(tokenValue);
+	    	  array.add(token);
 	    	  jsonObject = new JSONObject();
 	    	  jsonObject.put("token",array);
 	    	  FileWriter fw = new FileWriter("./tokens.json", false);

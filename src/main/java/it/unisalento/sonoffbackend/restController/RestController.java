@@ -73,35 +73,4 @@ OkHttpClient client = new OkHttpClient();
 		   
 		   return status;
 	  }
-	  
-	  @RequestMapping(value="saveToken/{token}", method = RequestMethod.POST) 
-	  public ResponseEntity<String> saveToken(@PathVariable("token") String token/*@RequestBody String token)*/) throws Exception{		  
-		  JSONParser parser = new JSONParser();
-	      JSONArray array = new JSONArray();
-	      File file = new File("./tokens.json");  
-	      file.createNewFile();
-	      //String tokenValue = token.split("=")[1];
-	      List<String> tokens = new ArrayList<>();
-			
-	      try {
-	    	  Reader reader = new FileReader("./tokens.json");
-	    	  JSONObject jsonObject = (JSONObject) parser.parse(reader);
-	    	  tokens = (List<String>) jsonObject.get("token");
-	    	  for(String tok: tokens) {
-	    		  array.add(tok);
-	    		  }
-	    	  array.add(token);
-	    	  jsonObject = new JSONObject();
-	    	  jsonObject.put("token",array);
-	    	  FileWriter fw = new FileWriter("./tokens.json", false);
-	    	  fw.write(jsonObject.toJSONString());
-	    	  fw.close();
-	    	  return new ResponseEntity<String>(HttpStatus.OK);
-	    	  } catch (IOException | ParseException e) {
-	    		  System.out.println("Something went wrong while saving token\n" + e.getMessage());
-	    		  throw e;
-			}
-	  }
-	
-
 }

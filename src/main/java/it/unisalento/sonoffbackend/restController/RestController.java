@@ -37,7 +37,7 @@ public class RestController {
 OkHttpClient client = new OkHttpClient();
 	
 	String host = "http://localhost:8081/";
-	String authAddress = "http://192.168.1.100:8180/auth/realms/MyRealm/protocol/openid-connect/token";
+	String authAddress = "http://192.168.1.100:8180/auth/realms/master/protocol/openid-connect/token";
 	
 
 	@RequestMapping(value = "changeStatusOFF/{clientId}/{token}", method = RequestMethod.GET)
@@ -46,12 +46,8 @@ OkHttpClient client = new OkHttpClient();
 				.get()
 				.build();
 		Response response = client.newCall(request).execute();
-		if (response.isSuccessful()) {
-			return new ResponseEntity<>(HttpStatus.OK);
-		}
-		System.out.println("Something went wrong in changing status to OFF");
-		throw new Exception();
-
+		return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+		
 	}
 
 	@RequestMapping(value = "changeStatusON/{clientId}{token}", method = RequestMethod.GET)
@@ -60,16 +56,11 @@ OkHttpClient client = new OkHttpClient();
 				.get()
 				.build();
 		Response response = client.newCall(request).execute();
-		if (response.isSuccessful()) {
-			return new ResponseEntity<>(HttpStatus.OK);
-		}
-		System.out.println("Something went wrong in changing status to ON");
-		throw new Exception();
-
+		return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
 	}
 
 	  @RequestMapping(value="getStatus/{clientId}/{token}", method = RequestMethod.GET) 
-	  public String getStatus(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception{
+	  public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception{
 		   Request request = new Request.Builder().url(host+"getStatus/"+clientId+"/"+token)
 					.get()
 				   .build();
@@ -77,10 +68,9 @@ OkHttpClient client = new OkHttpClient();
 		   String status = response.body().string();
 		   if(status==null) {
 			   System.out.println("Something went wrong while getting status");
-			   throw new Exception();
+			   return new ResponseEntity<String>(HttpStatus.valueOf(response.code()));
 		   }
-		   
-		   return status;
+		   return new ResponseEntity<String>(status, HttpStatus.valueOf(response.code()));
 	  }
 	  
 	  @RequestMapping(value="getAccessToken", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -22,7 +22,10 @@ dependencies {
 	implementation 'org.keycloak:keycloak-admin-client:16.1.1'
 	implementation 'org.json:json:20171018'
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-	
+	implementation 'com.auth0:java-jwt:3.18.3'
+    implementation 'org.keycloak:keycloak-spring-boot-starter:16.1.1'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    
     
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

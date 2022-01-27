@@ -72,18 +72,4 @@ OkHttpClient client = new OkHttpClient();
 		   }
 		   return new ResponseEntity<String>(status, HttpStatus.valueOf(response.code()));
 	  }
-	  
-	  @RequestMapping(value="getAccessToken", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	  public String getAccessToken(@RequestBody Credential credential) {
-		  String accessToken;
-		  try {
-		  Keycloak instance = Keycloak.getInstance("http://keycloak:8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "gateway");                                                                                                      
-		  TokenManager tokenmanager = instance.tokenManager();
-		  accessToken = tokenmanager.getAccessTokenString();
-		  }
-		  catch (javax.ws.rs.NotAuthorizedException e) {
-			return null;
-		}
-		return accessToken; 
-	  }
 }

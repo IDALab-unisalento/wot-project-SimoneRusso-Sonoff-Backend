@@ -1,0 +1,20 @@
+---
+is:
+  keycloak:
+    admin:
+      user: admin
+      password: admin
+
+server:
+  port: 8082
+
+# Keycloak settings
+keycloak:
+  realm: MyRealm
+  auth-server-url: http://localhost:8180/auth
+  ssl-required: none
+  resource: backend
+  use-resource-role-mappings: true
+  bearer-only: true
+  cors: true
+  

@@ -1,11 +1,6 @@
-package model;
+package it.unisalento.sonoffbackend.model;
 
 public class Credential {
-	
-	public Credential() {
-
-	}
-	
 	String username;
 	String password;
 	public String getUsername() {
@@ -20,7 +15,4 @@ public class Credential {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	
-
 }

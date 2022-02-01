@@ -8,6 +8,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -75,14 +84,13 @@ OkHttpClient client = new OkHttpClient();
 	  
 	  @RequestMapping(value="getAccessToken", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	  public String getAccessToken(@RequestBody Credential credential) {
-		  String accessToken;
+		  String accessToken = null;
 		  try {
-		  Keycloak instance = Keycloak.getInstance("http://keycloak:8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "gateway");                                                                                                      
+		  Keycloak instance = Keycloak.getInstance("http://keycloak:8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
 		  TokenManager tokenmanager = instance.tokenManager();
 		  accessToken = tokenmanager.getAccessTokenString();
 		  }
 		  catch (javax.ws.rs.NotAuthorizedException e) {
-			return null;
 		}
 		return accessToken; 
 	  }

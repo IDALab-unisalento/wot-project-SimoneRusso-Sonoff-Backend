@@ -11,7 +11,10 @@ server:
 # Keycloak settings
 keycloak:
   realm: MyRealm
-  auth-server-url: http://localhost:8180/auth
+  #STUDIUM
+  auth-server-url: http://10.20.72.9:8180/auth
+  #CASA
+  #auth-server-url: http://192.168.1.100:8180/auth
   ssl-required: none
   resource: backend
   use-resource-role-mappings: true

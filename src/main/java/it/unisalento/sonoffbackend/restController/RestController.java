@@ -100,11 +100,14 @@ public class RestController {
 	}
 
 
-
+	//TODO: indirizzi ip
 	String host = "http://localhost:8081/";
-	String authAddress = "http://192.168.1.100:8180/auth/realms/master/protocol/openid-connect/token";
+	//STUDIUM
+	String authAddress = "http://10.20.72.9:8180/auth/realms/master/protocol/openid-connect/token";
+	//CASA
+	//String authAddress = "http://192.168.1.100:8180/auth/realms/master/protocol/openid-connect/token";
 
-
+	
 	@RequestMapping(value = "changeStatusOFF/{clientId}/{token}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean> changeStatusOFF(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
 		Request request = new Request.Builder().url(host+"changeStatusOFF/"+clientId+"/"+token)
@@ -142,7 +145,7 @@ public class RestController {
 	public ResponseEntity<User> getAccessToken(@RequestBody Credential credential) {
 		String accessToken = null;
 		try {
-			Keycloak instance = Keycloak.getInstance("http://keycloak:8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
+			Keycloak instance = Keycloak.getInstance(keycloakUrl, "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
 			TokenManager tokenmanager = instance.tokenManager();
 			accessToken = tokenmanager.getAccessTokenString();
 			if(accessToken == null) {

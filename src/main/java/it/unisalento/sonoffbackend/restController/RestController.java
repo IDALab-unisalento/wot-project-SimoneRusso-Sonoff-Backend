@@ -1,5 +1,7 @@
 package it.unisalento.sonoffbackend.restController;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 /*
 import java.io.File;
 import java.io.FileReader;
@@ -47,6 +49,7 @@ import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.admin.client.token.TokenManager;
+import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
@@ -58,11 +61,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import com.github.underscore.U;
+import com.github.underscore.Json.JsonObject;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Credentials;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+
 
 import it.unisalento.sonoffbackend.model.Credential;
 import it.unisalento.sonoffbackend.model.User;
@@ -103,47 +110,124 @@ public class RestController {
 	//TODO: indirizzi ip
 	String host = "http://localhost:8081/";
 	//STUDIUM
-	String authAddress = "http://10.20.72.9:8180/auth/realms/master/protocol/openid-connect/token";
+	//String authAddress = "http://10.20.72.9:8180/auth/realms/master/protocol/openid-connect/token";
 	//CASA
 	//String authAddress = "http://192.168.1.100:8180/auth/realms/master/protocol/openid-connect/token";
+	//HOTSPOT
+	String authAddress = "http://172.20.10.4:8180/auth/realms/MyRealm/protocol/openid-connect/userinfo";
+	String refreshAddress="http://172.20.10.4:8180/auth/realms/MyRealm/protocol/openid-connect/token";
 
 	
-	@RequestMapping(value = "changeStatusOFF/{clientId}/{token}", method = RequestMethod.GET)
-	public ResponseEntity<Boolean> changeStatusOFF(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
-		Request request = new Request.Builder().url(host+"changeStatusOFF/"+clientId+"/"+token)
-				.get()
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "changeStatusOFF/{clientId}/{input}", method = RequestMethod.POST)
+	public ResponseEntity<User> changeStatusOFF(@PathVariable("clientId") String clientId, @PathVariable("input") int input, @RequestBody User user) throws Exception {
+		
+		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+		JSONObject jsonObj = new JSONObject();
+		
+		jsonObj.put("username", user.getUsername());
+		jsonObj.put("role", user.getRole());
+		jsonObj.put("token", user.getToken());
+		jsonObj.put("refreshToken", user.getRefreshToken());
+		
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
+		
+		Request request = new Request.Builder().url(host+"changeStatusOFF/"+clientId+"/"+input)
+				.post(body)
 				.build();
 		Response response = client.newCall(request).execute();
-		return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+		
+		if(response.isSuccessful()) {
+			JSONParser parser = new JSONParser();  
+			try {
+				JSONObject json = (JSONObject) parser.parse(response.body().string());  
+				user.setToken(json.get("token").toString());
+				user.setRefreshToken(json.get("refreshToken").toString());
+				return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
 
-	}
-
-	@RequestMapping(value = "changeStatusON/{clientId}{token}", method = RequestMethod.GET)
-	public ResponseEntity<Boolean> changeStatusON(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
-		Request request = new Request.Builder().url(host+"changeStatusON/"+clientId+"/"+token)
-				.get()
-				.build();
-		Response response = client.newCall(request).execute();
-		return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
-	}
-
-	@RequestMapping(value="getStatus/{clientId}/{token}", method = RequestMethod.GET) 
-	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception{
-		Request request = new Request.Builder().url(host+"getStatus/"+clientId+"/"+token)
-				.get()
-				.build();
-		Response response = client.newCall(request).execute();
-		String status = response.body().string();
-		if(status==null) {
-			System.out.println("Something went wrong while getting status");
-			return new ResponseEntity<String>(HttpStatus.valueOf(response.code()));
+			}catch (Exception e) {
+				return new ResponseEntity<>(null, HttpStatus.valueOf(response.code()));
+			}	
 		}
-		return new ResponseEntity<String>(status, HttpStatus.valueOf(response.code()));
+		else {
+			return new ResponseEntity<>(null, HttpStatus.valueOf(response.code()));
+		}
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "changeStatusON/{clientId}/{input}", method = RequestMethod.POST)
+	public ResponseEntity<User> changeStatusON(@PathVariable("clientId") String clientId, @PathVariable("input") int input, @RequestBody User user) throws Exception {
+		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+		JSONObject jsonObj = new JSONObject();
+		
+		jsonObj.put("username", user.getUsername());
+		jsonObj.put("role", user.getRole());
+		jsonObj.put("token", user.getToken());
+		jsonObj.put("refreshToken", user.getRefreshToken());
+		
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
+		
+		Request request = new Request.Builder().url(host+"changeStatusON/"+clientId+"/"+input)
+				.post(body)
+				.build();
+		Response response = client.newCall(request).execute();
+		if(response.isSuccessful()) {
+			JSONParser parser = new JSONParser();  
+			try {
+				JSONObject json = (JSONObject) parser.parse(response.body().string());  
+				user.setToken(json.get("token").toString());
+				user.setRefreshToken(json.get("refreshToken").toString());
+				return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
+
+			}catch (Exception e) {
+				return new ResponseEntity<>(null, HttpStatus.valueOf(response.code()));
+			}	
+		}
+		else {
+			return new ResponseEntity<>(null, HttpStatus.valueOf(response.code()));
+		}
+	}	
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="getStatus/{clientId}/{input}", method = RequestMethod.POST) 
+	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @PathVariable("input") int input, @RequestBody User user) throws Exception{
+		
+		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+		JSONObject jsonObj = new JSONObject();
+		
+		jsonObj.put("username", user.getUsername());
+		jsonObj.put("role", user.getRole());
+		jsonObj.put("token", user.getToken());
+		jsonObj.put("refreshToken", user.getRefreshToken());
+		
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
+		Request request = new Request.Builder().url(host+"getStatus/"+clientId+"/"+input)
+				.post(body)
+				.build();
+		Response response = client.newCall(request).execute();
+		if(response.isSuccessful()) {
+			JSONParser parser = new JSONParser();
+			JSONObject jsonResp = (JSONObject) parser.parse(response.body().string());
+			System.out.println(jsonResp);
+			
+			/*if(status==null) {
+				System.out.println("Something went wrong while getting status");
+				return new ResponseEntity<String>(HttpStatus.valueOf(response.code()));
+			}*/
+			
+			return new ResponseEntity<>(jsonResp.toString(), HttpStatus.valueOf(response.code()));
+		}
+		else {
+			return new ResponseEntity<>(null, HttpStatus.valueOf(response.code()));
+
+		}
 	}
 
 	@RequestMapping(value="auth", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<User> getAccessToken(@RequestBody Credential credential) {
 		String accessToken = null;
+		String refreshToken = null;
 		try {
 			Keycloak instance = Keycloak.getInstance(keycloakUrl, "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
 			TokenManager tokenmanager = instance.tokenManager();
@@ -151,6 +235,7 @@ public class RestController {
 			if(accessToken == null) {
 				return new ResponseEntity<User>(HttpStatus.FORBIDDEN);
 			}
+			refreshToken = tokenmanager.getAccessToken().getRefreshToken();
 		}
 		catch (javax.ws.rs.NotAuthorizedException e) {
 		}
@@ -161,6 +246,7 @@ public class RestController {
 			user.setUsername(credential.getUsername());
 			user.setToken(accessToken);
 			user.setRole(role);
+			user.setRefreshToken(refreshToken);
 			return new ResponseEntity<User>(user, HttpStatus.OK);
 		}
 
@@ -184,11 +270,13 @@ public class RestController {
 	}
 
 	@PostMapping("/createUser/{username}/{password}/{userRole}")
-	public ResponseEntity<String> createUser(@PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("userRole") String userRole, @RequestBody User user) {
-		
-		if(checkToken(user.getToken()) && user.getRole().equals("admin")) { //checking token and role
+	public ResponseEntity<User> createUser(@PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("userRole") String userRole, @RequestBody User user) {
+		User tempUser;
+		if((tempUser = checkToken(user))!=null && user.getRole().equals("admin")) { //checking token and role
 			if (username.isBlank() || password.isBlank()) {
-				return ResponseEntity.badRequest().body("Empty username or password");
+				
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+						//ResponseEntity.badRequest().body("Empty username or password");
 			}
 			CredentialRepresentation credentials = new CredentialRepresentation();
 			credentials.setType(CredentialRepresentation.PASSWORD);
@@ -212,7 +300,13 @@ public class RestController {
 	        
 			assignRoleToUser(userRepresentation.getId(), userRole);
 			
-			return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
+			if(user == tempUser) {
+				return new ResponseEntity<>(null, HttpStatus.valueOf(result.getStatus()));
+			}
+			else {
+				return new ResponseEntity<>(user, HttpStatus.valueOf(result.getStatus()));
+
+			}
 		}
 		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
@@ -232,24 +326,60 @@ public class RestController {
         userResource.roles().clientLevel(clientRepresentation.getId()).add(Collections.singletonList(roleRepresentation));
     }
 
-	private Boolean checkToken(String token) {
+	private User checkToken(User user) {
 		Request request = new Request.Builder()
 				.url(authAddress)
 				.header("Content-Type", "application/json")
-				.header("Authorization","Bearer "+ token)
+				.header("Authorization","Bearer "+ user.getToken())
 				.get()
 				.build();
 		Response response;
 		try {
 			response = client.newCall(request).execute();
 			if (response.isSuccessful()) {
-				return true;
+				return user;
+			}
+			else {
+				user = executeRefresh(user);
+				return user;
 			}
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		return false;
+		return null;
+	}
+	
+	public User executeRefresh(User user) {
+		com.squareup.okhttp.RequestBody requestBody = new FormEncodingBuilder()
+	    	     .add("grant_type", "refresh_token")
+	    	     .add("refresh_token", user.getRefreshToken())
+	    	     .add("client_id", keycloakClient)
+	    	     .add("client_secret", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8")
+	    	     .build();
+	    
+	    Request request = new Request.Builder()
+	    		.url(refreshAddress)
+	    		.post(requestBody)
+	            .build();
+	    Response response;
+	    try {
+	    	response = client.newCall(request).execute();
+	    	if(response.isSuccessful()) {
+	    		JSONParser parser = new JSONParser();  
+	    		JSONObject json = (JSONObject) parser.parse(response.body().string());  
+	    		System.out.println(json);
+	    		user.setToken(json.get("access_token").toString());
+	    		user.setRefreshToken(json.get("refresh_token").toString());  
+		    	return user;
+	    	}
+	    	else {
+	    		return null;
+	    	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

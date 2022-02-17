@@ -138,7 +138,7 @@ public class RestController {
 		return new ResponseEntity<String>(status, HttpStatus.valueOf(response.code()));
 	}
 
-	@RequestMapping(value="getAccessToken", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value="auth", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<User> getAccessToken(@RequestBody Credential credential) {
 		String accessToken = null;
 		try {
@@ -164,7 +164,6 @@ public class RestController {
 		return new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR); 
 	}
 
-	@GetMapping("/roles-by-user/{username}")
 	public String getRolesByUser(String username){ //@PathVariable("username") String username) {
 		Keycloak keycloak = getKeycloakInstance();
 		Optional<UserRepresentation> user = keycloak.realm(keycloakRealm).users().search(username).stream()

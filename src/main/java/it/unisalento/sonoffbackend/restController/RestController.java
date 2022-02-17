@@ -1,5 +1,7 @@
 package it.unisalento.sonoffbackend.restController;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 /*
 import java.io.File;
 import java.io.FileReader;
@@ -75,6 +77,7 @@ import java.util.stream.Collectors;
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
 	OkHttpClient client = new OkHttpClient();
+	
 	@Value("${keycloak.resource}")
 	private String keycloakClient;
 
@@ -89,6 +92,9 @@ public class RestController {
 
 	@Value("${is.keycloak.admin.password}")
 	private String keycloakAdminPassword;
+	
+	@Value("${server.address}")
+	private String ip;
 
 	private Keycloak getKeycloakInstance() {
 		return Keycloak.getInstance(
@@ -100,11 +106,10 @@ public class RestController {
 	}
 
 
+	private final String host = "http://localhost:8081/";
+	private final String authAddress = "http://"+ip+":8180/auth/realms/master/protocol/openid-connect/token";
 
-	private String host = "http://localhost:8081/";
-	private String authAddress = "http://172.20.10.4:8180/auth/realms/master/protocol/openid-connect/token";
-	private String ip= "172.20.10.4";
-
+	
 	@RequestMapping(value = "changeStatusOFF/{clientId}/{token}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean> changeStatusOFF(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
 		Request request = new Request.Builder().url(host+"changeStatusOFF/"+clientId+"/"+token)

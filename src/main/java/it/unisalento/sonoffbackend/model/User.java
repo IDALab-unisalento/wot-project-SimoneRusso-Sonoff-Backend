@@ -4,6 +4,7 @@ public class User {
 	String username;
 	String role;
 	String token;
+	String refreshToken;
 	public String getUsername() {
 		return username;
 	}
@@ -21,5 +22,11 @@ public class User {
 	}
 	public void setToken(String token) {
 		this.token = token;
+	}
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 	}
 }

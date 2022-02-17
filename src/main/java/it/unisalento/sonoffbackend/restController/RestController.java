@@ -101,9 +101,9 @@ public class RestController {
 
 
 
-	String host = "http://localhost:8081/";
-	String authAddress = "http://192.168.1.100:8180/auth/realms/master/protocol/openid-connect/token";
-
+	private String host = "http://localhost:8081/";
+	private String authAddress = "http://172.20.10.4:8180/auth/realms/master/protocol/openid-connect/token";
+	private String ip= "172.20.10.4";
 
 	@RequestMapping(value = "changeStatusOFF/{clientId}/{token}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean> changeStatusOFF(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
@@ -115,7 +115,7 @@ public class RestController {
 
 	}
 
-	@RequestMapping(value = "changeStatusON/{clientId}{token}", method = RequestMethod.GET)
+	@RequestMapping(value = "changeStatusON/{clientId}/{token}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean> changeStatusON(@PathVariable("clientId") String clientId, @PathVariable("token") String token) throws Exception {
 		Request request = new Request.Builder().url(host+"changeStatusON/"+clientId+"/"+token)
 				.get()
@@ -141,14 +141,15 @@ public class RestController {
 	@RequestMapping(value="auth", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<User> getAccessToken(@RequestBody Credential credential) {
 		String accessToken = null;
+		String refreshToken = null;
 		try {
-			Keycloak instance = Keycloak.getInstance("http://keycloak:8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
+			Keycloak instance = Keycloak.getInstance("http://"+ip+":8180/auth", "MyRealm", credential.getUsername(), credential.getPassword(), "backend", "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8");                                                                                                      
 			TokenManager tokenmanager = instance.tokenManager();
 			accessToken = tokenmanager.getAccessTokenString();
 			if(accessToken == null) {
 				return new ResponseEntity<User>(HttpStatus.FORBIDDEN);
 			}
-		}
+			refreshToken = tokenmanager.getAccessToken().getRefreshToken();		}
 		catch (javax.ws.rs.NotAuthorizedException e) {
 		}
 		User user = new User();
@@ -158,6 +159,7 @@ public class RestController {
 			user.setUsername(credential.getUsername());
 			user.setToken(accessToken);
 			user.setRole(role);
+			user.setRefreshToken(refreshToken);
 			return new ResponseEntity<User>(user, HttpStatus.OK);
 		}
 

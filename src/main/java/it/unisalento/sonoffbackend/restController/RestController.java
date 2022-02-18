@@ -143,10 +143,10 @@ public class RestController {
 					user.setRefreshToken(json.get("refreshToken").toString());
 					return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
 				}
-				return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+				return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
 
 			}
-			return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
+			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
 			
 		} 
 		catch (IOException e) {
@@ -214,7 +214,6 @@ public class RestController {
 				user.setRefreshToken(refreshToken);
 				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
-
 			return new ResponseEntity<User>(HttpStatus.INTERNAL_SERVER_ERROR); 
 		}
 		catch (javax.ws.rs.NotAuthorizedException e) {
@@ -327,7 +326,7 @@ public class RestController {
 		 try {
 				response = client.newCall(request).execute();
 				if(response.isSuccessful()) {
-					return null;
+					return new User();
 				}
 				else {
 					return executeRefresh(user);

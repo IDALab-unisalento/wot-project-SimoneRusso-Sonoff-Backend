@@ -98,7 +98,7 @@ public class RestController {
 					user.setRefreshToken(json.get("refreshToken").toString());
 					return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
 				}
-				return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+				return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
 
 			}
 			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
@@ -146,7 +146,7 @@ public class RestController {
 				return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
 
 			}
-			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+			return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
 			
 		} 
 		catch (IOException e) {
@@ -223,7 +223,6 @@ public class RestController {
 		
 	}
 
-	//TODO: verificare che funzioni
 	@PostMapping("createUser/{username}/{password}/{userRole}")
 	public ResponseEntity<User> createUser(@PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("userRole") String userRole, @RequestBody User user) {
 			try {
@@ -256,7 +255,6 @@ public class RestController {
 				
 			} 
 			catch (Exception e) {
-				// TODO Auto-generated catch block
 				if(e.getMessage().equals("invalid token")) {
 					return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 				}
@@ -284,7 +282,6 @@ public class RestController {
 		}
 	}
 	
-	//TODO:trovare documentazione
 	private void assignRoleToUser(String userId, String role, String username) throws Exception {
         Keycloak keycloak = getAdminKeycloakInstance();
         UsersResource usersResource = keycloak.realm(keycloakRealm).users();

@@ -160,7 +160,7 @@ public class RestController {
 	
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value="getStatus1/{clientId}", method = RequestMethod.POST) 
-	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @RequestBody User user){
+	public ResponseEntity<String> getStatus1(@PathVariable("clientId") String clientId, @RequestBody User user){
 		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
 		JSONObject jsonObj = new JSONObject();
 		

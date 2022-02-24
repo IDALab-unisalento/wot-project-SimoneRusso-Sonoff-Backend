@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-
+import it.unisalento.sonoffgateway.restController.RestController;
 import net.bytebuddy.utility.RandomString;
 
 @ExtendWith(SpringExtension.class)

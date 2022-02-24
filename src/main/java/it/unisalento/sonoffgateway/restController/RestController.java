@@ -1,4 +1,4 @@
-package it.unisalento.sonoffbackend.restController;
+package it.unisalento.sonoffgateway.restController;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,8 +23,8 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-import it.unisalento.sonoffbackend.model.Credential;
-import it.unisalento.sonoffbackend.model.User;
+import it.unisalento.sonoffgateway.model.Credential;
+import it.unisalento.sonoffgateway.model.User;
 
 import java.io.IOException;
 import java.util.*;

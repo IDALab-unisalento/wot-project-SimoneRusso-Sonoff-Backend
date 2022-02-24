@@ -1,4 +1,4 @@
-package it.unisalento.sonoffbackend.configurations;
+package it.unisalento.sonoffgateway.configurations;
 	
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;

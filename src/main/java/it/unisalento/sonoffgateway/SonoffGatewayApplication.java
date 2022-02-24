@@ -1,4 +1,4 @@
-package it.unisalento.sonoffbackend;
+package it.unisalento.sonoffgateway;
 
 import java.util.Collections;
 
@@ -8,11 +8,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SonoffBackEndApplication {
-	private static final Logger LOG = LogManager.getLogger(SonoffBackEndApplication.class);
+public class SonoffGatewayApplication {
+	private static final Logger LOG = LogManager.getLogger(SonoffGatewayApplication.class);
 
 	public static void main(String[] args) {
-		SpringApplication.run(SonoffBackEndApplication.class, args);
+		SpringApplication.run(SonoffGatewayApplication.class, args);
 	}
 
 }

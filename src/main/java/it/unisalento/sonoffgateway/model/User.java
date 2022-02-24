@@ -1,4 +1,4 @@
-package it.unisalento.sonoffbackend.model;
+package it.unisalento.sonoffgateway.model;
 
 public class User {
 	String username;

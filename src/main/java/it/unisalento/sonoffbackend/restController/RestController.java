@@ -159,7 +159,7 @@ public class RestController {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value="getStatus1/{clientId}", method = RequestMethod.POST) 
+	@RequestMapping(value="getStatus/{clientId}", method = RequestMethod.POST) 
 	public ResponseEntity<String> getStatus1(@PathVariable("clientId") String clientId, @RequestBody User user){
 		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
 		JSONObject jsonObj = new JSONObject();
@@ -171,7 +171,44 @@ public class RestController {
 		
 		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
 		
-		Request request = new Request.Builder().url(host+"getStatus1/"+clientId)
+		Request request = new Request.Builder().url(host+"getStatus/"+clientId)
+				.post(body)
+				.build();
+		
+		Response response;
+		try {
+			response = client.newCall(request).execute();
+			if(response.isSuccessful()) {
+				JSONParser parser = new JSONParser();
+				JSONObject jsonResp = (JSONObject) parser.parse(response.body().string());
+				return new ResponseEntity<>(jsonResp.toString(), HttpStatus.valueOf(response.code()));
+			}
+			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="getTouchSensorState/{clientId}", method = RequestMethod.POST) 
+	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody User user){
+		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+		JSONObject jsonObj = new JSONObject();
+		
+		jsonObj.put("username", user.getUsername());
+		jsonObj.put("role", user.getRole());
+		jsonObj.put("token", user.getToken());
+		jsonObj.put("refreshToken", user.getRefreshToken());
+		
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
+		
+		Request request = new Request.Builder().url(host+"getTouchSensorState/"+clientId)
 				.post(body)
 				.build();
 		
@@ -313,8 +350,6 @@ public class RestController {
         }
     }
 	
-	//@PostMapping("check")
-	//private ResponseEntity<User> checkToken(User user) throws Exception{
 	private User checkToken(User user) throws Exception {
 		Request request = new Request.Builder()
 			      .url(authAddress)
@@ -338,36 +373,6 @@ public class RestController {
 			}
 	}
 		
-		
-		/*Keycloak instance = Keycloak.getInstance(keycloakUrl, keycloakRealm, keycloakClient, user.getToken()); //CAPIRE BENE QUESTA
-		TokenManager tokenManager = instance.tokenManager();
-		String accessToken = null;
-		//String accessToken = tokenManager.getAccessTokenString();*/
-		
-		
-		/*METODO 1 DA TESTARE
-		if(accessToken == null) {
-			return executeRefresh(user);
-		}
-		return null;
-		*/
-		/* METODO 2 DA TESTARE 
-		try {
-			 accessToken = tokenManager.getAccessTokenString();
-			 return new ResponseEntity<>(user, HttpStatus.OK);
-		}
-		catch (javax.ws.rs.NotAuthorizedException e) { //CAPIRE BENE QUALE ECCEZIONE GESTIRE
-			try {
-				e.printStackTrace();
-				accessToken = tokenManager.refreshToken().getToken();
-				user.setToken(accessToken);
-				user.setRefreshToken(tokenManager.getAccessToken().getRefreshToken());
-				return new ResponseEntity<User>(user, HttpStatus.OK);			}
-			catch (java.lang.NullPointerException e1) {
-				e1.printStackTrace();
-				return new ResponseEntity<User>(HttpStatus.UNAUTHORIZED);
-			}
-		}*/
 	
 	private User executeRefresh(User user) throws Exception {
 		com.squareup.okhttp.RequestBody requestBody = new FormEncodingBuilder()

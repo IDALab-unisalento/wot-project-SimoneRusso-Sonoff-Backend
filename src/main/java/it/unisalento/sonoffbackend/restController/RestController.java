@@ -159,7 +159,7 @@ public class RestController {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value="getStatus1/{clientId}", method = RequestMethod.POST) 
+	@RequestMapping(value="getStatus/{clientId}", method = RequestMethod.POST) 
 	public ResponseEntity<String> getStatus1(@PathVariable("clientId") String clientId, @RequestBody User user){
 		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
 		JSONObject jsonObj = new JSONObject();
@@ -171,7 +171,44 @@ public class RestController {
 		
 		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
 		
-		Request request = new Request.Builder().url(host+"getStatus1/"+clientId)
+		Request request = new Request.Builder().url(host+"getStatus/"+clientId)
+				.post(body)
+				.build();
+		
+		Response response;
+		try {
+			response = client.newCall(request).execute();
+			if(response.isSuccessful()) {
+				JSONParser parser = new JSONParser();
+				JSONObject jsonResp = (JSONObject) parser.parse(response.body().string());
+				return new ResponseEntity<>(jsonResp.toString(), HttpStatus.valueOf(response.code()));
+			}
+			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="getTouchSensorState/{clientId}", method = RequestMethod.POST) 
+	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody User user){
+		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
+		JSONObject jsonObj = new JSONObject();
+		
+		jsonObj.put("username", user.getUsername());
+		jsonObj.put("role", user.getRole());
+		jsonObj.put("token", user.getToken());
+		jsonObj.put("refreshToken", user.getRefreshToken());
+		
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
+		
+		Request request = new Request.Builder().url(host+"getTouchSensorState/"+clientId)
 				.post(body)
 				.build();
 		

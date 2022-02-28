@@ -26,6 +26,10 @@ dependencies {
 	implementation 'org.keycloak:keycloak-spring-boot-starter:16.1.1'
     implementation 'org.keycloak:keycloak-admin-client:16.1.1'
 	implementation 'com.squareup.okhttp:okhttp:2.5.0'
+	implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+	implementation 'com.github.javadev:underscore:1.74'
+
+	
     
     
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'

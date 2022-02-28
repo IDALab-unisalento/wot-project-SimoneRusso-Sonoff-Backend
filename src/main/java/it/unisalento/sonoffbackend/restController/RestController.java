@@ -1,5 +1,14 @@
 package it.unisalento.sonoffbackend.restController;
 
+
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -18,11 +27,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.github.underscore.U;
+import com.github.underscore.U.Builder;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import it.unisalento.sonoffbackend.exception.InvalidTokenEx;
 import it.unisalento.sonoffbackend.model.Credential;
 import it.unisalento.sonoffbackend.model.User;
 
@@ -35,6 +47,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
 	OkHttpClient client = new OkHttpClient();
+	private final String INVALID_TOKEN = "Invalid token";
+	private String ip = "10.3.141.130";
+
+
 	
 	@Value("${keycloak.resource}")
 	private String keycloakClient;
@@ -53,6 +69,19 @@ public class RestController {
 	
 	private String keycloakClientSecret = "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8";
 	
+	/*
+	
+	private String keycloakClient = "backend";
+
+	private String keycloakUrl = "http://"+ip+":8180/auth" ;
+	
+	private String keycloakRealm= "MyRealm";
+
+	private String keycloakAdminUser= "admin";
+
+	private String keycloakAdminPassword= "admin";
+	*/
+	
 	private Keycloak getAdminKeycloakInstance() {
 		return Keycloak.getInstance(
 				keycloakUrl,
@@ -62,178 +91,190 @@ public class RestController {
 				"admin-cli");
 	}
 
-	private String ip = "10.3.141.130";
 	//private String ip = "192.168.1.100";
-	private final String host = "http://localhost:8081/";
 	private final String authAddress = "http://"+ip+":8180/auth/realms/MyRealm/protocol/openid-connect/userinfo";
 	private final String refreshAddress="http://"+ip+":8180/auth/realms/MyRealm/protocol/openid-connect/token";
-	
-	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "changeStatusOFF/{clientId}", method = RequestMethod.POST)
-	public ResponseEntity<User> changeStatusOFF(@PathVariable("clientId") String clientId, @RequestBody User user){
-		
-		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
-		JSONObject jsonObj = new JSONObject();
-		
-		jsonObj.put("username", user.getUsername());
-		jsonObj.put("role", user.getRole());
-		jsonObj.put("token", user.getToken());
-		jsonObj.put("refreshToken", user.getRefreshToken());
-		
-		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
-		
-		Request request = new Request.Builder().url(host+"changeStatusOFF/"+clientId)
-				.post(body)
-				.build();
-		
-		Response response;
-		try {
-			response = client.newCall(request).execute();
-			if(response.isSuccessful()) {
-				JSONParser parser = new JSONParser();  
-				String stringBody = response.body().string();
-				if(!stringBody.isEmpty()) {
-					JSONObject json = (JSONObject) parser.parse(stringBody);  
-					user.setToken(json.get("token").toString());
-					user.setRefreshToken(json.get("refreshToken").toString());
-					return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
-				}
-				return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
+	private final String cmdTopic1 = "cmnd/tasmota_8231A8/POWER1";
+	private final String reqTopic = "cmnd/tasmota_8231A8/STATUS11";
+	private final String statTopic = "stat/tasmota_8231A8/STATUS11";
+	private final String broker = "tcp://localhost:1883";		
+	private String status="";
 
-			}
-			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
-			
-		} 
-		catch (IOException e) {
-			e.getStackTrace();
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		} 
-		catch (ParseException e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-	}
-
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "changeStatusON/{clientId}", method = RequestMethod.POST)
 	public ResponseEntity<User> changeStatusON(@PathVariable("clientId") String clientId, @RequestBody User user) throws Exception {
-		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
-		JSONObject jsonObj = new JSONObject();
 		
-		jsonObj.put("username", user.getUsername());
-		jsonObj.put("role", user.getRole());
-		jsonObj.put("token", user.getToken());
-		jsonObj.put("refreshToken", user.getRefreshToken());
-		
-		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
-		
-		Request request = new Request.Builder().url(host+"changeStatusON/"+clientId)
-				.post(body)
-				.build();
-		
-		Response response;
 		try {
-			response = client.newCall(request).execute();
-			if(response.isSuccessful()) {
-				JSONParser parser = new JSONParser();  
-				String stringBody = response.body().string();
-				if(!stringBody.isEmpty()) {
-					JSONObject json = (JSONObject) parser.parse(stringBody);  
-					user.setToken(json.get("token").toString());
-					user.setRefreshToken(json.get("refreshToken").toString());
-					return new ResponseEntity<>(user, HttpStatus.valueOf(response.code()));
-				}
-				return new ResponseEntity<>(new User(), HttpStatus.valueOf(response.code()));
-
-			}
-			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
+			user = checkToken(user); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
+			MqttClient client = connectToBroker(cmdTopic1, clientId);
+			MqttMessage message = new MqttMessage("ON".getBytes());
+			System.out.println("Trying to change status to ON...");
+			client.publish(cmdTopic1, message);
+			client.disconnect(100);
+			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
+			client.close();	
+			return new ResponseEntity<>(user, HttpStatus.OK);
 			
-		} 
-		catch (IOException e) {
-			e.getStackTrace();
+		}catch (ParseException e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		} 
-		catch (ParseException e) {
+		} catch (InvalidTokenEx e) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (MqttException e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		
 	}
 	
-	@SuppressWarnings("unchecked")
-	@RequestMapping(value="getStatus/{clientId}", method = RequestMethod.POST) 
-	public ResponseEntity<String> getStatus1(@PathVariable("clientId") String clientId, @RequestBody User user){
-		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
-		JSONObject jsonObj = new JSONObject();
+	@RequestMapping(value = "changeStatusOFF/{clientId}", method = RequestMethod.POST)
+	public ResponseEntity<User> changeStatusOFF(@PathVariable("clientId") String clientId, @RequestBody User user) throws Exception {
 		
-		jsonObj.put("username", user.getUsername());
-		jsonObj.put("role", user.getRole());
-		jsonObj.put("token", user.getToken());
-		jsonObj.put("refreshToken", user.getRefreshToken());
-		
-		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
-		
-		Request request = new Request.Builder().url(host+"getStatus/"+clientId)
-				.post(body)
-				.build();
-		
-		Response response;
 		try {
-			response = client.newCall(request).execute();
-			if(response.isSuccessful()) {
-				JSONParser parser = new JSONParser();
-				JSONObject jsonResp = (JSONObject) parser.parse(response.body().string());
-				return new ResponseEntity<>(jsonResp.toString(), HttpStatus.valueOf(response.code()));
-			}
-			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
-
+			user = checkToken(user); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
+			MqttClient client = connectToBroker(cmdTopic1, clientId);
+			MqttMessage message = new MqttMessage("OFF".getBytes());
+			System.out.println("Trying to change status to ON...");
+			client.publish(cmdTopic1, message);
+			client.disconnect(100);
+			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
+			client.close();	
+			return new ResponseEntity<>(user, HttpStatus.OK);
+			
+		}catch (ParseException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (InvalidTokenEx e) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (MqttException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	@RequestMapping(value="getStatus/{clientId}", method = RequestMethod.POST) 
+	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @RequestBody User user){	
+		try {
+			user = checkToken(user);
+			//status1 = "";
+			MqttClient client = connectToBroker(statTopic, clientId);;
+			System.out.println("Trying to subscribe to "+statTopic);
+			client.subscribe(statTopic, new IMqttMessageListener() {
+				@Override
+				public void messageArrived(String topic, MqttMessage message) throws Exception {
+					status = new String(message.getPayload());
+					System.out.println("Getted status: " + status);
+					client.disconnect();
+				}
+			});
+			MqttMessage message = new MqttMessage();
+			message.setPayload("0".getBytes());
+			System.out.println("Trying to get status...");
+			client.publish(reqTopic, message);	//BLOCKING
+			while(client.isConnected());
+			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
+			client.close();
+			System.out.println("status: "+status.split(",")[8]);
+			
+			String status1 = status.split(",")[8].split(":")[1].replaceAll("\"", "");
+			String pir = status.split(",")[9].split(":")[1].replaceAll("\"", "");
+			String touch = status.split(",")[10].split(":")[1].replaceAll("\"", "");
+			Builder builder = U.objectBuilder()
+					.add("status", status1)
+					.add("pirSensor", pir)
+					.add("touchSensor", touch);
+			
+			if(user!=null) {
+				builder
+					.add("user", U.objectBuilder()
+					.add("username", user.getUsername())
+					.add("role", user.getRole())
+					.add("token", user.getToken())
+					.add("refreshToken", user.getRefreshToken()));
+			}
+			String retValue = builder.toJson();
+			return new ResponseEntity<>(retValue, HttpStatus.OK); //OTTENGO LO STATO DI POWER1, POWER2, POWER3*/
+		}
+		catch (MqttException e) {
+			System.out.println("Something went wrong while getting status!\n" + e.getMessage());
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (ParseException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (InvalidTokenEx e) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+
 		
 	}
 	
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value="getTouchSensorState/{clientId}", method = RequestMethod.POST) 
 	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody User user){
-		com.squareup.okhttp.MediaType JSON = com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8");
-		JSONObject jsonObj = new JSONObject();
-		
-		jsonObj.put("username", user.getUsername());
-		jsonObj.put("role", user.getRole());
-		jsonObj.put("token", user.getToken());
-		jsonObj.put("refreshToken", user.getRefreshToken());
-		
-		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(JSON, jsonObj.toString());
-		
-		Request request = new Request.Builder().url(host+"getTouchSensorState/"+clientId)
-				.post(body)
-				.build();
-		
-		Response response;
 		try {
-			response = client.newCall(request).execute();
-			if(response.isSuccessful()) {
-				JSONParser parser = new JSONParser();
-				JSONObject jsonResp = (JSONObject) parser.parse(response.body().string());
-				return new ResponseEntity<>(jsonResp.toString(), HttpStatus.valueOf(response.code()));
+			user = checkToken(user);
+			MqttClient client = connectToBroker(statTopic, clientId);;
+			System.out.println("Trying to subscribe to "+statTopic);
+			client.subscribe(statTopic, new IMqttMessageListener() {
+				@Override
+				public void messageArrived(String topic, MqttMessage message) throws Exception {
+					status = new String(message.getPayload());
+					System.out.println("Getted status: " + status);
+					client.disconnect();
+				}
+			});
+			MqttMessage message = new MqttMessage();
+			//message.setPayload("".getBytes());
+			message.setPayload("0".getBytes());
+			System.out.println("Trying to get status...");
+			client.publish(reqTopic, message);	//BLOCKING
+			while(client.isConnected());
+			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
+			client.close();
+			
+			String touch = status.split(",")[10].split(":")[1].replaceAll("\"", "");
+			Builder builder = U.objectBuilder()
+					.add("touchSensor", touch);
+			
+			if(user!=null) {
+				builder
+					.add("user", U.objectBuilder()
+					.add("username", user.getUsername())
+					.add("role", user.getRole())
+					.add("token", user.getToken())
+					.add("refreshToken", user.getRefreshToken()));
 			}
-			return new ResponseEntity<>(HttpStatus.valueOf(response.code()));
-
-		} catch (IOException e) {
+			String retValue = builder.toJson();
+			return new ResponseEntity<>(retValue, HttpStatus.OK); //OTTENGO LO STATO DI POWER1*/
+		}
+		catch (MqttException e) {
+			System.out.println("Something went wrong while getting status!\n" + e.getMessage());
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (ParseException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (InvalidTokenEx e) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
 		}
-		
 	}
+	
 
 	@RequestMapping(value="auth", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<User> getAccessToken(@RequestBody Credential credential) {
+	public ResponseEntity<User> authentication(@RequestBody Credential credential) {
 		String accessToken = null;
 		String refreshToken = null;
 		try {
@@ -350,7 +391,7 @@ public class RestController {
         }
     }
 	
-	private User checkToken(User user) throws Exception {
+	private User checkToken(User user) throws ParseException, InvalidTokenEx, IOException{
 		Request request = new Request.Builder()
 			      .url(authAddress)
 			      .header("Content-Type", "application/json")
@@ -361,7 +402,7 @@ public class RestController {
 		 try {
 				response = client.newCall(request).execute();
 				if(response.isSuccessful()) {
-					return new User();
+					return null;
 				}
 				else {
 					return executeRefresh(user);
@@ -372,9 +413,8 @@ public class RestController {
 				throw e;
 			}
 	}
-		
 	
-	private User executeRefresh(User user) throws Exception {
+	private User executeRefresh(User user) throws ParseException, IOException, InvalidTokenEx {
 		com.squareup.okhttp.RequestBody requestBody = new FormEncodingBuilder()
 	    	     .add("grant_type", "refresh_token")
 	    	     .add("refresh_token", user.getRefreshToken())
@@ -387,23 +427,60 @@ public class RestController {
 	    		.post(requestBody)
 	            .build();
 	    Response response;
-	    
 	    try {
-	    	response = client.newCall(request).execute();
-	    	if(response.isSuccessful()) {
+			response = client.newCall(request).execute();
+			if(response.isSuccessful()) {
 	    		JSONParser parser = new JSONParser();  
 	    		JSONObject json = (JSONObject) parser.parse(response.body().string());  
 	    		user.setToken(json.get("access_token").toString());
 	    		user.setRefreshToken(json.get("refresh_token").toString());  
 		    	return user;
 	    	}
-	    	else {
-	    		throw new Exception("Invalid token");	  
+			else {
+	    		throw new InvalidTokenEx(INVALID_TOKEN);	  
 	    	}
-		}catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			throw e;
+		} catch (ParseException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (InvalidTokenEx e) {
+			throw e;
 		}
+	}
+	
+	private MqttClient connectToBroker(String topic, String clientId) throws MqttException {
+		MqttClient client = new MqttClient(broker, clientId, new MemoryPersistence());
+		client.setCallback(new MqttCallbackExtended() {
+			@Override
+			public void messageArrived(String topic, MqttMessage message) throws Exception {
+			}
+			
+			@Override
+			public void deliveryComplete(IMqttDeliveryToken token) {
+				if(topic.equals(cmdTopic1)) {
+					System.out.println("State changed!");
+				}
+				else {
+					System.out.println("Getting status...");
+				}
+			}
+			
+			@Override
+			public void connectionLost(Throwable cause) {
+			}
+			
+			@Override
+			public void connectComplete(boolean reconnect, String serverURI) {
+				System.out.println("Connected succesfully!");
+			}
+		});
+		MqttConnectOptions opt = new MqttConnectOptions();
+		opt.setCleanSession(true);
+		System.out.println("Connceting to broker at: " + broker);
+		client.connect(opt);
+		return client;
 	}
 
 }

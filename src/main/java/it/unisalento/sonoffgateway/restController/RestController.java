@@ -36,20 +36,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class RestController {
 	OkHttpClient client = new OkHttpClient();
 	
-	@Value("${keycloak.resource}")
-	private String keycloakClient;
+	private String keycloakClient = "backend";
 
-	@Value("${keycloak.auth-server-url}")
-	private String keycloakUrl;
+	private String keycloakUrl = "http://10.3.141.130:8180/auth";
 
-	@Value("${keycloak.realm}")
-	private String keycloakRealm;
+	private String keycloakRealm = "MyRealm";
 
-	@Value("${is.keycloak.admin.user}")
-	private String keycloakAdminUser;
+	private String keycloakAdminUser = "admin";
 
-	@Value("${is.keycloak.admin.password}")
-	private String keycloakAdminPassword;
+	private String keycloakAdminPassword ="admin";
 	
 	private String keycloakClientSecret = "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8";
 	

@@ -41,7 +41,9 @@ import it.unisalento.sonoffbackend.hibernate.domain.User;
 import it.unisalento.sonoffbackend.hibernate.dto.EventDTO;
 import it.unisalento.sonoffbackend.hibernate.dto.UserDTO;
 import it.unisalento.sonoffbackend.hibernate.iService.IEventService;
+import it.unisalento.sonoffbackend.hibernate.iService.IUserService;
 import it.unisalento.sonoffbackend.model.Credential;
+import it.unisalento.sonoffbackend.model.EventCode;
 import it.unisalento.sonoffbackend.model.LoggedUser;
 import it.unisalento.sonoffbackend.wrapper.LogApiWrapper;
 
@@ -56,6 +58,9 @@ public class RestController {
 	
 	@Autowired
 	IEventService eventService;
+	
+	@Autowired
+	IUserService userService;
 	
 	OkHttpClient client = new OkHttpClient();
 	private final String INVALID_TOKEN = "Invalid token";
@@ -95,18 +100,18 @@ public class RestController {
 	private String status="";
 
 	@RequestMapping(value = "changeStatusON/{clientId}", method = RequestMethod.POST)
-	public ResponseEntity<LoggedUser> changeStatusON(@PathVariable("clientId") String clientId, @RequestBody LoggedUser user) throws Exception {
+	public ResponseEntity<LoggedUser> changeStatusON(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser) throws Exception {
 		
 		try {
-			user = checkToken(user); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
-			MqttClient client = connectToBroker(cmdTopic1, clientId);
+			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
+			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
 			MqttMessage message = new MqttMessage("ON".getBytes());
 			System.out.println("Trying to change status to ON...");
 			client.publish(cmdTopic1, message);
 			client.disconnect(100);
 			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
 			client.close();	
-			return new ResponseEntity<>(user, HttpStatus.OK);
+			return new ResponseEntity<>(loggedUser, HttpStatus.OK);
 			
 		}catch (ParseException e) {
 			e.printStackTrace();
@@ -124,18 +129,18 @@ public class RestController {
 	}
 	
 	@RequestMapping(value = "changeStatusOFF/{clientId}", method = RequestMethod.POST)
-	public ResponseEntity<LoggedUser> changeStatusOFF(@PathVariable("clientId") String clientId, @RequestBody LoggedUser user) throws Exception {
+	public ResponseEntity<LoggedUser> changeStatusOFF(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser) throws Exception {
 		
 		try {
-			user = checkToken(user); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
-			MqttClient client = connectToBroker(cmdTopic1, clientId);
+			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
+			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
 			MqttMessage message = new MqttMessage("OFF".getBytes());
-			System.out.println("Trying to change status to ON...");
+			System.out.println("Trying to change status to OFF...");
 			client.publish(cmdTopic1, message);
 			client.disconnect(100);
 			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
 			client.close();	
-			return new ResponseEntity<>(user, HttpStatus.OK);
+			return new ResponseEntity<>(loggedUser, HttpStatus.OK);
 			
 		}catch (ParseException e) {
 			e.printStackTrace();
@@ -153,11 +158,11 @@ public class RestController {
 	}
 	
 	@RequestMapping(value="getStatus/{clientId}", method = RequestMethod.POST) 
-	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @RequestBody LoggedUser user){	
+	public ResponseEntity<String> getStatus(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser){	
 		try {
-			user = checkToken(user);
+			loggedUser = checkToken(loggedUser);
 			//status1 = "";
-			MqttClient client = connectToBroker(statTopic, clientId);;
+			MqttClient client = connectToBroker(statTopic, clientId, loggedUser);;
 			System.out.println("Trying to subscribe to "+statTopic);
 			client.subscribe(statTopic, new IMqttMessageListener() {
 				@Override
@@ -184,13 +189,13 @@ public class RestController {
 					.add("pirSensor", pir)
 					.add("touchSensor", touch);
 			
-			if(user!=null) {
+			if(loggedUser!=null) {
 				builder
 					.add("user", U.objectBuilder()
-					.add("username", user.getUsername())
-					.add("role", user.getRole())
-					.add("token", user.getToken())
-					.add("refreshToken", user.getRefreshToken()));
+					.add("username", loggedUser.getUsername())
+					.add("role", loggedUser.getRole())
+					.add("token", loggedUser.getToken())
+					.add("refreshToken", loggedUser.getRefreshToken()));
 			}
 			String retValue = builder.toJson();
 			return new ResponseEntity<>(retValue, HttpStatus.OK); //OTTENGO LO STATO DI POWER1, POWER2, POWER3*/
@@ -213,10 +218,10 @@ public class RestController {
 	}
 	
 	@RequestMapping(value="getTouchSensorState/{clientId}", method = RequestMethod.POST) 
-	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody LoggedUser user){
+	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser){
 		try {
-			user = checkToken(user);
-			MqttClient client = connectToBroker(statTopic, clientId);;
+			loggedUser = checkToken(loggedUser);
+			MqttClient client = connectToBroker(statTopic, clientId, loggedUser);
 			System.out.println("Trying to subscribe to "+statTopic);
 			client.subscribe(statTopic, new IMqttMessageListener() {
 				@Override
@@ -239,13 +244,13 @@ public class RestController {
 			Builder builder = U.objectBuilder()
 					.add("touchSensor", touch);
 			
-			if(user!=null) {
+			if(loggedUser!=null) {
 				builder
 					.add("user", U.objectBuilder()
-					.add("username", user.getUsername())
-					.add("role", user.getRole())
-					.add("token", user.getToken())
-					.add("refreshToken", user.getRefreshToken()));
+					.add("username", loggedUser.getUsername())
+					.add("role", loggedUser.getRole())
+					.add("token", loggedUser.getToken())
+					.add("refreshToken", loggedUser.getRefreshToken()));
 			}
 			String retValue = builder.toJson();
 			return new ResponseEntity<>(retValue, HttpStatus.OK); //OTTENGO LO STATO DI POWER1*/
@@ -275,15 +280,15 @@ public class RestController {
 			TokenManager tokenmanager = instance.tokenManager();
 			accessToken = tokenmanager.getAccessTokenString();
 			refreshToken = tokenmanager.getAccessToken().getRefreshToken();		
-			LoggedUser user = new LoggedUser();
+			LoggedUser loggedUser = new LoggedUser();
 			
 			String role = getRolesByUser(credential.getUsername());
 			if(role!=null) {
-				user.setUsername(credential.getUsername());
-				user.setToken(accessToken);
-				user.setRole(role);
-				user.setRefreshToken(refreshToken);
-				return new ResponseEntity<LoggedUser>(user, HttpStatus.OK);
+				loggedUser.setUsername(credential.getUsername());
+				loggedUser.setToken(accessToken);
+				loggedUser.setRole(role);
+				loggedUser.setRefreshToken(refreshToken);
+				return new ResponseEntity<LoggedUser>(loggedUser, HttpStatus.OK);
 			}
 			return new ResponseEntity<LoggedUser>(HttpStatus.INTERNAL_SERVER_ERROR); 
 		}
@@ -294,9 +299,9 @@ public class RestController {
 	}
 
 	@PostMapping("createUser/{username}/{password}/{userRole}")
-	public ResponseEntity<LoggedUser> createUser(@PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("userRole") String userRole, @RequestBody LoggedUser user) {
+	public ResponseEntity<LoggedUser> createUser(@PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("userRole") String userRole, @RequestBody LoggedUser loggedUser) {
 			try {
-				user = checkToken(user);
+				loggedUser = checkToken(loggedUser);
 				CredentialRepresentation credentials = new CredentialRepresentation();
 				credentials.setType(CredentialRepresentation.PASSWORD);
 				credentials.setValue(password);
@@ -316,11 +321,17 @@ public class RestController {
 			                .filter(userRep -> userRep.getUsername().equals(username)).collect(Collectors.toList());
 					
 			        userRepresentation = userList.get(0);
+			        
+			        User user = new User();
+					user.setId(userRepresentation.getId());
+					user.setUsername(username);
+					userService.save(user);
+					
 			        assignRoleToUser(userRepresentation.getId(), userRole, username);
-					return new ResponseEntity<>(user, HttpStatus.valueOf(response.getStatus()));
+					return new ResponseEntity<>(loggedUser, HttpStatus.valueOf(response.getStatus()));
 				}
 				else {
-					return new ResponseEntity<>(user, HttpStatus.valueOf(response.getStatus()));
+					return new ResponseEntity<>(loggedUser, HttpStatus.valueOf(response.getStatus()));
 				}
 				
 			} 
@@ -334,6 +345,7 @@ public class RestController {
 				}
 				
 			}	
+			
 	}
 	
 	@PostMapping("getEventLog")
@@ -428,11 +440,11 @@ public class RestController {
         }
     }
 	
-	private LoggedUser checkToken(LoggedUser user) throws ParseException, InvalidTokenEx, IOException{
+	private LoggedUser checkToken(LoggedUser loggedUser) throws ParseException, InvalidTokenEx, IOException{
 		Request request = new Request.Builder()
 			      .url(authAddress)
 			      .header("Content-Type", "application/json")
-			      .header("Authorization","Bearer "+ user.getToken())
+			      .header("Authorization","Bearer "+ loggedUser.getToken())
 			      .get()
 			      .build();
 		 Response response;
@@ -442,7 +454,7 @@ public class RestController {
 					return null;
 				}
 				else {
-					return executeRefresh(user);
+					return executeRefresh(loggedUser);
 				}
 			} 
 		 catch (IOException e) {
@@ -487,7 +499,7 @@ public class RestController {
 		}
 	}
 	
-	private MqttClient connectToBroker(String topic, String clientId) throws MqttException {
+	private MqttClient connectToBroker(String topic, String clientId, LoggedUser loggedUser) throws MqttException {
 		MqttClient client = new MqttClient(broker, clientId, new MemoryPersistence());
 		client.setCallback(new MqttCallbackExtended() {
 			@Override
@@ -497,7 +509,22 @@ public class RestController {
 			@Override
 			public void deliveryComplete(IMqttDeliveryToken token) {
 				if(topic.equals(cmdTopic1)) {
-					System.out.println("State changed!");
+					try {
+						System.out.println("State changed!");
+						Event event = new Event();
+						event.setDate(new Date());
+						User user = userService.findByUsername(loggedUser.getUsername());
+						event.setUser(user);
+						
+						if(token.getMessage().getPayload().toString().equals("ON")) {
+							event.setEvent_type(EventCode.BUZZER_ON);
+						}else if (token.getMessage().getPayload().toString().equals("OFF")) {
+							event.setEvent_type(EventCode.BUZZER_OFF);
+						}
+					} catch (MqttException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				else {
 					System.out.println("Getting status...");

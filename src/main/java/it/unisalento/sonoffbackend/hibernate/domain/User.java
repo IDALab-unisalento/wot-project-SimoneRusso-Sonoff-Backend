@@ -14,9 +14,8 @@ public class User {
 	
 	public User() {}
 	
-	@GeneratedValue
 	@Id
-	int id;
+	String id;
 	String name;
 	String surname;
 	String username;
@@ -24,10 +23,11 @@ public class User {
 	@OneToMany(mappedBy = "user", targetEntity = Event.class, cascade = CascadeType.ALL , fetch = FetchType.LAZY)
 	List<Event> eventList;
 	
-	public int getId() {
+	
+	public String getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getName() {

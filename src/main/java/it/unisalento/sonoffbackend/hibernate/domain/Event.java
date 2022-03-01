@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import it.unisalento.sonoffbackend.model.EventCode;
+
 @Entity
 public class Event {
 	
@@ -18,7 +20,7 @@ public class Event {
 	@Id
 	int id;
 	Date date;
-	int event_type;
+	EventCode event_type;
 	
 	@ManyToOne
 	User user;
@@ -36,10 +38,11 @@ public class Event {
 	public void setDate(Date date) {
 		this.date = date;
 	}
-	public int getEvent_type() {
+	
+	public EventCode getEvent_type() {
 		return event_type;
 	}
-	public void setEvent_type(int event_type) {
+	public void setEvent_type(EventCode event_type) {
 		this.event_type = event_type;
 	}
 	public User getUser() {

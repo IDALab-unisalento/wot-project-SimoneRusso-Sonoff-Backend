@@ -1,14 +1,14 @@
 package it.unisalento.sonoffbackend.hibernate.dto;
 
 public class UserDTO {
-	int id;
+	String id;
 	String name;
 	String surname;
 	String username;
-	public int getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getName() {

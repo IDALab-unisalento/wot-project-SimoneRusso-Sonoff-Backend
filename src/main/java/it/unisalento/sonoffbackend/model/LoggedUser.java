@@ -1,6 +1,6 @@
 package it.unisalento.sonoffbackend.model;
 
-public class User {
+public class LoggedUser {
 	String username;
 	String role;
 	String token;

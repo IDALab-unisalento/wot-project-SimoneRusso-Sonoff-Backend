@@ -1,9 +1,5 @@
 package it.unisalento.sonoffbackend.dto;
 
-import java.util.List;
-
-import it.unisalento.sonoffbackend.domain.Event;
-
 public class UserDTO {
 	int id;
 	String name;

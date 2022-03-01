@@ -8,4 +8,6 @@ public interface IEventService {
 
 	List<Event> findAll();
 
+	Event save(Event event) throws IllegalArgumentException;
+
 }

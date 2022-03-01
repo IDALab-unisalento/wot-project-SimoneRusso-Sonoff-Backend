@@ -18,5 +18,9 @@ public class EventService implements IEventService {
 	public List<Event> findAll() {
 		return eventRepository.findAll();
 	}
+	@Override
+	public Event save(Event event) throws IllegalArgumentException {
+		return eventRepository.save(event);
+	}
 
 }

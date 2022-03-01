@@ -521,6 +521,10 @@ public class RestController {
 						}else if (token.getMessage().getPayload().toString().equals("OFF")) {
 							event.setEvent_type(EventCode.BUZZER_OFF);
 						}
+						else {
+							event.setEvent_type(EventCode.UNKWON);
+						}
+						eventService.save(event);
 					} catch (MqttException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

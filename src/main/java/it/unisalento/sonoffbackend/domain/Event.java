@@ -2,11 +2,28 @@ package it.unisalento.sonoffbackend.domain;
 
 import java.util.Date;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+@Entity
 public class Event {
+	
+	
+	
+	public Event() {}
+	
+	@GeneratedValue
+	@Id
 	int id;
 	Date date;
 	int event_type;
+	
+	@ManyToOne
 	User user;
+	
+	
 	public int getId() {
 		return id;
 	}

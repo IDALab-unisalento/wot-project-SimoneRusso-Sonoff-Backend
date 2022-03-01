@@ -9,7 +9,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -31,10 +30,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.github.underscore.U;
 import com.github.underscore.U.Builder;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -65,8 +60,6 @@ public class RestController {
 	OkHttpClient client = new OkHttpClient();
 	private final String INVALID_TOKEN = "Invalid token";
 	private String ip = "10.3.141.130";
-
-
 	
 	@Value("${keycloak.resource}")
 	private String keycloakClient;
@@ -359,8 +352,6 @@ public class RestController {
 			}	
 	}
 	
-	
-	//TODO: verificare che funzioni
 		@PostMapping("getEventLog")
 		public ResponseEntity<LogApiWrapper> getEventLog(@RequestBody LoggedUser loggedUser){
 			try {

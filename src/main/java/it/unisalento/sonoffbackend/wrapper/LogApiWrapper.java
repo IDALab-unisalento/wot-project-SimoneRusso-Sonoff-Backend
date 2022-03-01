@@ -2,7 +2,7 @@ package it.unisalento.sonoffbackend.wrapper;
 
 import java.util.List;
 
-import it.unisalento.sonoffbackend.dto.EventDTO;
+import it.unisalento.sonoffbackend.hibernate.dto.EventDTO;
 import it.unisalento.sonoffbackend.model.LoggedUser;
 
 public class LogApiWrapper {

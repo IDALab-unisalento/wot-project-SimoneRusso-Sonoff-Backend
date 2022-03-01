@@ -35,12 +35,12 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-import it.unisalento.sonoffbackend.domain.Event;
-import it.unisalento.sonoffbackend.domain.User;
-import it.unisalento.sonoffbackend.dto.EventDTO;
-import it.unisalento.sonoffbackend.dto.UserDTO;
 import it.unisalento.sonoffbackend.exception.InvalidTokenEx;
-import it.unisalento.sonoffbackend.iService.IEventService;
+import it.unisalento.sonoffbackend.hibernate.domain.Event;
+import it.unisalento.sonoffbackend.hibernate.domain.User;
+import it.unisalento.sonoffbackend.hibernate.dto.EventDTO;
+import it.unisalento.sonoffbackend.hibernate.dto.UserDTO;
+import it.unisalento.sonoffbackend.hibernate.iService.IEventService;
 import it.unisalento.sonoffbackend.model.Credential;
 import it.unisalento.sonoffbackend.model.LoggedUser;
 import it.unisalento.sonoffbackend.wrapper.LogApiWrapper;
@@ -70,26 +70,11 @@ public class RestController {
 	@Value("${keycloak.realm}")
 	private String keycloakRealm;
 
-	//@Value("${is.keycloak.admin.user}")
 	private String keycloakAdminUser = "admin";
 
-	//@Value("${is.keycloak.admin.password}")
 	private String keycloakAdminPassword ="admin";
 	
 	private String keycloakClientSecret = "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8";
-	
-	/*
-	
-	private String keycloakClient = "backend";
-
-	private String keycloakUrl = "http://"+ip+":8180/auth" ;
-	
-	private String keycloakRealm= "MyRealm";
-
-	private String keycloakAdminUser= "admin";
-
-	private String keycloakAdminPassword= "admin";
-	*/
 	
 	private Keycloak getAdminKeycloakInstance() {
 		return Keycloak.getInstance(
@@ -281,7 +266,6 @@ public class RestController {
 		}
 	}
 	
-
 	@RequestMapping(value="auth", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<LoggedUser> authentication(@RequestBody Credential credential) {
 		String accessToken = null;
@@ -352,8 +336,8 @@ public class RestController {
 			}	
 	}
 	
-		@PostMapping("getEventLog")
-		public ResponseEntity<LogApiWrapper> getEventLog(@RequestBody LoggedUser loggedUser){
+	@PostMapping("getEventLog")
+	public ResponseEntity<LogApiWrapper> getEventLog(@RequestBody LoggedUser loggedUser){
 			try {
 				loggedUser = checkToken(loggedUser);
 				List<Event> eventList = eventService.findAll();		

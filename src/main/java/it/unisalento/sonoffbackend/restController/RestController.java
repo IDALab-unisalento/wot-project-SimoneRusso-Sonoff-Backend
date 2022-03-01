@@ -77,11 +77,11 @@ public class RestController {
 	@Value("${keycloak.realm}")
 	private String keycloakRealm;
 
-	@Value("${is.keycloak.admin.user}")
-	private String keycloakAdminUser;
+	//@Value("${is.keycloak.admin.user}")
+	private String keycloakAdminUser = "admin";
 
-	@Value("${is.keycloak.admin.password}")
-	private String keycloakAdminPassword;
+	//@Value("${is.keycloak.admin.password}")
+	private String keycloakAdminPassword ="admin";
 	
 	private String keycloakClientSecret = "eLFYzBFFDlJrA9dTmNPnkTwhiipyB8x8";
 	

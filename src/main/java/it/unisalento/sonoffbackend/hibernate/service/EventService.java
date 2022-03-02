@@ -15,12 +15,22 @@ public class EventService implements IEventService {
 	@Autowired
 	EventRepository eventRepository;
 	@Override
-	public List<Event> findAll() {
-		return eventRepository.findAll();
+	public List<Event> findAll() throws Exception {
+		try {
+			return eventRepository.findAll();
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 	@Override
-	public Event save(Event event) throws IllegalArgumentException {
-		return eventRepository.save(event);
+	public Event save(Event event) throws Exception {
+		try {
+			return eventRepository.save(event);
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 }

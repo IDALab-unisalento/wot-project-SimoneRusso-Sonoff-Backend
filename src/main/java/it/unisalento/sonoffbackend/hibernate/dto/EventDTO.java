@@ -8,7 +8,7 @@ import it.unisalento.sonoffbackend.model.EventCode;
 public class EventDTO {
 	int id;
 	Date date;
-	EventCode event_type;
+	String event_type;
 	UserDTO userDTO;
 	public int getId() {
 		return id;
@@ -22,10 +22,10 @@ public class EventDTO {
 	public void setDate(Date date) {
 		this.date = date;
 	}
-	public EventCode getEvent_type() {
+	public String getEvent_type() {
 		return event_type;
 	}
-	public void setEvent_type(EventCode event_type) {
+	public void setEvent_type(String event_type) {
 		this.event_type = event_type;
 	}
 	public UserDTO getUserDTO() {

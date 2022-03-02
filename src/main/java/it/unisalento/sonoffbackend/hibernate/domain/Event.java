@@ -20,7 +20,7 @@ public class Event {
 	@Id
 	int id;
 	Date date;
-	EventCode event_type;
+	String event_type;
 	
 	@ManyToOne
 	User user;
@@ -39,10 +39,10 @@ public class Event {
 		this.date = date;
 	}
 	
-	public EventCode getEvent_type() {
+	public String getEvent_type() {
 		return event_type;
 	}
-	public void setEvent_type(EventCode event_type) {
+	public void setEvent_type(String event_type) {
 		this.event_type = event_type;
 	}
 	public User getUser() {

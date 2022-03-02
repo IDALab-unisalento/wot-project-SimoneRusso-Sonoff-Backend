@@ -6,8 +6,8 @@ import it.unisalento.sonoffbackend.hibernate.domain.Event;
 
 public interface IEventService {
 
-	List<Event> findAll();
+	List<Event> findAll() throws Exception;
 
-	Event save(Event event) throws IllegalArgumentException;
+	Event save(Event event) throws Exception;
 
 }

@@ -64,7 +64,7 @@ public class RestController {
 	
 	OkHttpClient client = new OkHttpClient();
 	private final String INVALID_TOKEN = "Invalid token";
-	private String ip = "10.3.141.130";
+	private String ip = "10.3.141.1";
 	
 	@Value("${keycloak.resource}")
 	private String keycloakClient;
@@ -96,21 +96,30 @@ public class RestController {
 	private final String cmdTopic1 = "cmnd/tasmota_8231A8/POWER1";
 	private final String reqTopic = "cmnd/tasmota_8231A8/STATUS11";
 	private final String statTopic = "stat/tasmota_8231A8/STATUS11";
-	private final String broker = "tcp://localhost:1883";		
+	private final String broker = "tcp://"+ip+":1883";		
 	private String status="";
 
 	@RequestMapping(value = "changeStatusON/{clientId}", method = RequestMethod.POST)
 	public ResponseEntity<LoggedUser> changeStatusON(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser) throws Exception {
 		
 		try {
+			Event event = new Event();
+			event.setDate(new Date());
+			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
 			MqttMessage message = new MqttMessage("ON".getBytes());
 			System.out.println("Trying to change status to ON...");
 			client.publish(cmdTopic1, message);
-			client.disconnect(100);
+			client.disconnect(1000);
 			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
 			client.close();	
+			
+			event.setUser(user);
+			event.setEvent_type(EventCode.BUZZER_ON);
+			
+			eventService.save(event);
+
 			return new ResponseEntity<>(loggedUser, HttpStatus.OK);
 			
 		}catch (ParseException e) {
@@ -122,6 +131,9 @@ public class RestController {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (MqttException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -132,14 +144,23 @@ public class RestController {
 	public ResponseEntity<LoggedUser> changeStatusOFF(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser) throws Exception {
 		
 		try {
+			Event event = new Event();
+			event.setDate(new Date());
+			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
 			MqttMessage message = new MqttMessage("OFF".getBytes());
 			System.out.println("Trying to change status to OFF...");
 			client.publish(cmdTopic1, message);
-			client.disconnect(100);
+			client.disconnect(1000);
 			System.out.println("Client " + client.getClientId() + " disconnected succesfully");
 			client.close();	
+						
+			event.setUser(user);
+			event.setEvent_type(EventCode.BUZZER_OFF);
+			
+			eventService.save(event);
+			
 			return new ResponseEntity<>(loggedUser, HttpStatus.OK);
 			
 		}catch (ParseException e) {
@@ -151,6 +172,9 @@ public class RestController {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (MqttException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -368,8 +392,8 @@ public class RestController {
 					if(user!=null) {
 						userDTO = new UserDTO();
 						userDTO.setId(user.getId());
-						userDTO.setName(user.getName());
-						userDTO.setSurname(user.getSurname());
+						//userDTO.setName(user.getName());
+						//userDTO.setSurname(user.getSurname());
 						userDTO.setUsername(user.getUsername());
 						eventDTO.setUserDTO(userDTO);
 					}
@@ -388,9 +412,26 @@ public class RestController {
 			} catch (IOException e) {
 				e.printStackTrace();
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 
 			}
 		}
+	
+	@RequestMapping(value="saveSensorEvent/{event_type}", method = RequestMethod.GET)
+	public ResponseEntity<Boolean>  saveSensorEvent(@PathVariable("event_type") String event_type){
+		Event event = new Event();
+		event.setDate(new Date());
+		event.setEvent_type(event_type);
+		try {
+			eventService.save(event);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 	
 	private String getRolesByUser(String username){
 		Keycloak keycloak = getAdminKeycloakInstance();
@@ -502,46 +543,34 @@ public class RestController {
 	private MqttClient connectToBroker(String topic, String clientId, LoggedUser loggedUser) throws MqttException {
 		MqttClient client = new MqttClient(broker, clientId, new MemoryPersistence());
 		client.setCallback(new MqttCallbackExtended() {
+			
 			@Override
-			public void messageArrived(String topic, MqttMessage message) throws Exception {
+			public void messageArrived(String topic, MqttMessage message) throws Exception {				
 			}
 			
 			@Override
 			public void deliveryComplete(IMqttDeliveryToken token) {
-				if(topic.equals(cmdTopic1)) {
-					try {
-						System.out.println("State changed!");
-						Event event = new Event();
-						event.setDate(new Date());
-						User user = userService.findByUsername(loggedUser.getUsername());
-						event.setUser(user);
-						
-						if(token.getMessage().getPayload().toString().equals("ON")) {
-							event.setEvent_type(EventCode.BUZZER_ON);
-						}else if (token.getMessage().getPayload().toString().equals("OFF")) {
-							event.setEvent_type(EventCode.BUZZER_OFF);
-						}
-						else {
-							event.setEvent_type(EventCode.UNKWON);
-						}
-						eventService.save(event);
-					} catch (MqttException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				System.out.println("delivery completed starting");
+				 if(topic.equals(cmdTopic1)) {
+					System.out.println("State changed!");
+					
 				}
 				else {
 					System.out.println("Getting status...");
 				}
+				System.out.println("deliveryCompleted finish");	
 			}
 			
 			@Override
 			public void connectionLost(Throwable cause) {
+				// TODO Auto-generated method stub
+				
 			}
 			
 			@Override
 			public void connectComplete(boolean reconnect, String serverURI) {
-				System.out.println("Connected succesfully!");
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		MqttConnectOptions opt = new MqttConnectOptions();

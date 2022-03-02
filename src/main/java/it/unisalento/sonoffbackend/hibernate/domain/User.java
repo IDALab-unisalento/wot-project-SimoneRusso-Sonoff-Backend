@@ -16,8 +16,8 @@ public class User {
 	
 	@Id
 	String id;
-	String name;
-	String surname;
+	//String name;
+	//String surname;
 	String username;
 	
 	@OneToMany(mappedBy = "user", targetEntity = Event.class, cascade = CascadeType.ALL , fetch = FetchType.LAZY)
@@ -30,18 +30,7 @@ public class User {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getSurname() {
-		return surname;
-	}
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
+	
 	public String getUsername() {
 		return username;
 	}

@@ -14,13 +14,23 @@ public class UserService implements IUserService{
 	UserRepository userRepository;
 
 	@Override
-	public User save(User user) throws IllegalArgumentException {
-		return userRepository.save(user);
+	public User save(User user) throws Exception {
+		try {
+			return userRepository.save(user);
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	@Override
-	public User findByUsername(String username) {
-		return userRepository.findByUsername(username);
+	public User findByUsername(String username) throws Exception{
+		try {
+			return userRepository.findByUsername(username);
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 }

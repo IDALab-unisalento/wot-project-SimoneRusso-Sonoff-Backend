@@ -19,7 +19,7 @@ public class Event {
 	@GeneratedValue
 	@Id
 	int id;
-	Date date;
+	String date;
 	String event_type;
 	
 	@ManyToOne
@@ -32,10 +32,10 @@ public class Event {
 	public void setId(int id) {
 		this.id = id;
 	}
-	public Date getDate() {
+	public String getDate() {
 		return date;
 	}
-	public void setDate(Date date) {
+	public void setDate(String date) {
 		this.date = date;
 	}
 	

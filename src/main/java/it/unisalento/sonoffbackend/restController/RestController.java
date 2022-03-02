@@ -48,6 +48,8 @@ import it.unisalento.sonoffbackend.model.LoggedUser;
 import it.unisalento.sonoffbackend.wrapper.LogApiWrapper;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -104,7 +106,9 @@ public class RestController {
 		
 		try {
 			Event event = new Event();
-			event.setDate(new Date());
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
+			LocalDateTime now = LocalDateTime.now(); 
+			event.setDate(now.toString());
 			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
@@ -145,8 +149,9 @@ public class RestController {
 		
 		try {
 			Event event = new Event();
-			event.setDate(new Date());
-			User user = userService.findByUsername(loggedUser.getUsername());
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
+			LocalDateTime now = LocalDateTime.now(); 
+			event.setDate(now.toString());			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
 			MqttMessage message = new MqttMessage("OFF".getBytes());
@@ -422,7 +427,9 @@ public class RestController {
 	@RequestMapping(value="saveSensorEvent/{event_type}", method = RequestMethod.GET)
 	public ResponseEntity<Boolean>  saveSensorEvent(@PathVariable("event_type") String event_type){
 		Event event = new Event();
-		event.setDate(new Date());
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
+		LocalDateTime now = LocalDateTime.now(); 
+		event.setDate(now.toString());
 		event.setEvent_type(event_type);
 		try {
 			eventService.save(event);

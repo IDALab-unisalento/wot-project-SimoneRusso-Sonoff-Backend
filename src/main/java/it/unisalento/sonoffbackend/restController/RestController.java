@@ -111,7 +111,7 @@ public class RestController {
 			event.setDate(now.toString());
 			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
-			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
+			MqttClient client = connectToBroker(cmdTopic1, clientId);
 			MqttMessage message = new MqttMessage("ON".getBytes());
 			System.out.println("Trying to change status to ON...");
 			client.publish(cmdTopic1, message);
@@ -153,7 +153,7 @@ public class RestController {
 			LocalDateTime now = LocalDateTime.now(); 
 			event.setDate(now.toString());			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
-			MqttClient client = connectToBroker(cmdTopic1, clientId, loggedUser);
+			MqttClient client = connectToBroker(cmdTopic1, clientId);
 			MqttMessage message = new MqttMessage("OFF".getBytes());
 			System.out.println("Trying to change status to OFF...");
 			client.publish(cmdTopic1, message);
@@ -191,7 +191,7 @@ public class RestController {
 		try {
 			loggedUser = checkToken(loggedUser);
 			//status1 = "";
-			MqttClient client = connectToBroker(statTopic, clientId, loggedUser);;
+			MqttClient client = connectToBroker(statTopic, clientId);
 			System.out.println("Trying to subscribe to "+statTopic);
 			client.subscribe(statTopic, new IMqttMessageListener() {
 				@Override
@@ -250,7 +250,7 @@ public class RestController {
 	public ResponseEntity<String> getTouchSensorState(@PathVariable("clientId") String clientId, @RequestBody LoggedUser loggedUser){
 		try {
 			loggedUser = checkToken(loggedUser);
-			MqttClient client = connectToBroker(statTopic, clientId, loggedUser);
+			MqttClient client = connectToBroker(statTopic, clientId);
 			System.out.println("Trying to subscribe to "+statTopic);
 			client.subscribe(statTopic, new IMqttMessageListener() {
 				@Override
@@ -433,6 +433,15 @@ public class RestController {
 		event.setEvent_type(event_type);
 		try {
 			eventService.save(event);
+			if(event.getEvent_type().equals("Touch sensor off")) {
+				MqttClient client = connectToBroker(cmdTopic1, "backend");
+				MqttMessage message = new MqttMessage("ON".getBytes());
+				System.out.println("Trying to change status to ON...");
+				client.publish(cmdTopic1, message);
+				client.disconnect(1000);
+				System.out.println("Client " + client.getClientId() + " disconnected succesfully");
+				client.close();	
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -547,7 +556,7 @@ public class RestController {
 		}
 	}
 	
-	private MqttClient connectToBroker(String topic, String clientId, LoggedUser loggedUser) throws MqttException {
+	private MqttClient connectToBroker(String topic, String clientId) throws MqttException {
 		MqttClient client = new MqttClient(broker, clientId, new MemoryPersistence());
 		client.setCallback(new MqttCallbackExtended() {
 			

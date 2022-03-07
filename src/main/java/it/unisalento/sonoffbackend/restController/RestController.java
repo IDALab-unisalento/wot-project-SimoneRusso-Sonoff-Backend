@@ -107,8 +107,8 @@ public class RestController {
 		try {
 			Event event = new Event();
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
-			LocalDateTime now = LocalDateTime.now(); 
-			event.setDate(now.toString());
+			String now = dtf.format(LocalDateTime.now()); 
+			event.setDate(now);
 			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId);
@@ -150,8 +150,9 @@ public class RestController {
 		try {
 			Event event = new Event();
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
-			LocalDateTime now = LocalDateTime.now(); 
-			event.setDate(now.toString());			User user = userService.findByUsername(loggedUser.getUsername());
+			String now = dtf.format(LocalDateTime.now()); 
+			event.setDate(now);			
+			User user = userService.findByUsername(loggedUser.getUsername());
 			loggedUser = checkToken(loggedUser); //LANCIA UN ECCEZIONE SE IL TOKEN NON E' PIU' VALIDO E NON PUO' ESSERE REFRESHATO
 			MqttClient client = connectToBroker(cmdTopic1, clientId);
 			MqttMessage message = new MqttMessage("OFF".getBytes());
@@ -428,7 +429,7 @@ public class RestController {
 	public ResponseEntity<Boolean>  saveSensorEvent(@PathVariable("event_type") String event_type){
 		Event event = new Event();
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");  
-		LocalDateTime now = LocalDateTime.now(); 
+		String now = dtf.format(LocalDateTime.now()); 
 		event.setDate(now.toString());
 		event.setEvent_type(event_type);
 		try {
